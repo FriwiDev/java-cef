@@ -199,11 +199,15 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
 
             @Override
             public void addNotify() {
-                super.addNotify();
-                if (removed_) {
-                    notifyAfterParentChanged();
-                    removed_ = false;
+                if (!removed_) {
+                    // On MacOS it may happen that the platform has not correctly notified us of a previous removal.
+                    // In this case, the jogl canvas will throw an error because of a second add operation in a row.
+                    // We patch this by post-notifying the canvas of the removal first, before notifying the canvas as normal.
+                    super.removeNotify();
                 }
+                super.addNotify();
+                notifyAfterParentChanged();
+                removed_ = false;
             }
 
             @Override
